@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <h2>hello from form</h2>
+        <form method="post" action="/MVNTomcatPlayground/servlet">
+            <input name="phone">
+            <button type="submit">Send</button>
+        </form>
+        <br>
+        <form method="post" action="/MVNTomcatPlayground/file-servlet" enctype="multipart/form-data">
+            <input type="text" name="author-name">
+            <input type="file" name="file-name">
+            <button type="submit">Send</button>
+        </form>
+    </body>
+</html>
