@@ -6,6 +6,10 @@ public class Book {
     private String author;
     private String description;
 
+    public Book() {
+        id = hashCode();
+    }
+
     public void setName(String name) {
         this.name = name;
     }

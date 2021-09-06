@@ -1,40 +1,56 @@
 package com.vlaskorobogatov.decoder;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.vlaskorobogatov.libstorage.Book;
 import com.vlaskorobogatov.libstorage.Rack;
+import com.vlaskorobogatov.libstorage.Shelf;
 
 import java.io.*;
-import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
-public class JSONDecoder<T> implements Decoder<T> {
-    @Override
-    public List<T> decode(String fileName) {
-        Gson gson = new Gson();
-        Type listType = new TypeToken<List<T>>() {
-        }.getType();
-        try {
-            Reader reader = new FileReader(fileName);
-            return gson.fromJson(reader, listType);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
+public class JSONDecoder implements Decoder {
+    String fileName;
+    Parser parser;
+
+    public JSONDecoder(Parser parser, String fileName) {
+        this.fileName = fileName;
+        this.parser = parser;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     @Override
-    public String encode(List<T> list) {
-        Gson gson = new Gson();
-        return gson.toJson(list);
+    public Object decode() {
+        try {
+            String jsonString = new String(Files.readAllBytes(Path.of(fileName)));
+            return parser.fromJSON(jsonString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public String encode(Object list) {
+        return parser.toJSON(list);
     }
 
     public static void main(String[] args) {
-        JSONDecoder<Rack> decoder = new JSONDecoder<>();
-        List<Rack> racks = decoder.decode("src/main/resources/test.json");
-
-        System.out.println(racks.getClass());
-        System.out.println(racks);
+        JSONDecoder decoder = new JSONDecoder(new GsonParser(), "src/main/resources/test.json");
+        List<Rack> racks = (List<Rack>) decoder.decode();
+        for (Rack rack:
+                racks) {
+            for (Shelf shelf:
+                    rack.shelves) {
+                for (Book book:
+                        shelf.books) {
+                    System.out.println((book.toString() + "\n"));
+                }
+            }
+        }
         if(!racks.isEmpty()) {
             System.out.println(racks.get(0).toString());
         }
