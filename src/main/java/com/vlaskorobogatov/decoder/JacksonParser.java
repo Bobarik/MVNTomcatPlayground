@@ -1,14 +1,7 @@
 package com.vlaskorobogatov.decoder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.reflect.TypeToken;
-import com.vlaskorobogatov.libstorage.Rack;
-
-import java.lang.reflect.Type;
-import java.util.List;
 
 public class JacksonParser implements Parser{
     @Override
@@ -23,10 +16,10 @@ public class JacksonParser implements Parser{
     }
 
     @Override
-    public Object fromJSON(String jsonFile) {
+    public Object fromJSON(String jsonFile, Class<?> firstClass) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.readValue(jsonFile, new TypeReference<List<Rack>>(){});
+            return mapper.readValue(jsonFile, firstClass);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

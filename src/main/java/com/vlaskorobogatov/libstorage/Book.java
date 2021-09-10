@@ -1,13 +1,21 @@
 package com.vlaskorobogatov.libstorage;
 
 public class Book {
-    private final int id;
     private String name;
     private String author;
     private String description;
+    private int rackId;
+    private int shelf;
 
-    public Book() {
-        id = hashCode();
+    public void setRackId(int rackId) {
+        this.rackId = rackId;
+    }
+
+    public void setShelfNumber(int shelf) throws NumberFormatException {
+        if(shelf > 3 || shelf < 1) {
+            throw new NumberFormatException("Shelf number must be in range of [1;3]");
+        }
+        this.shelf = shelf;
     }
 
     public void setName(String name) {
@@ -22,15 +30,15 @@ public class Book {
         this.description = description;
     }
 
-    public Book(int id, String name, String author, String description) {
-        this.id = id;
+    public Book(String name, String author, String description, int rackId, int shelf) throws NumberFormatException {
         this.name = name;
         this.author = author;
         this.description = description;
-    }
-
-    public int getId() {
-        return id;
+        this.rackId = rackId;
+        if(shelf > 3 || shelf < 1) {
+            throw new NumberFormatException("Shelf number must be in range of [1;3]");
+        }
+        this.shelf = shelf;
     }
 
     public String getName() {
@@ -45,11 +53,20 @@ public class Book {
         return description;
     }
 
+    public int getRackId() {
+        return rackId;
+    }
+
+    public int getShelfNumber() {
+        return shelf;
+    }
+
     @Override
     public String toString() {
-        return "Id: " + id
-                + "\nName: " + name
-                + "\nAuthor: " + author
-                + "\nDescription: " + description + "\n";
+        return "\nName: " + getName()
+                + "\nAuthor: " + getAuthor()
+                + "\nDescription: " + getDescription()
+                + "\nRackId: " + getRackId()
+                + "\nShelf number: " + getShelfNumber() + "\n";
     }
 }
