@@ -1,44 +1,47 @@
 package com.vlaskorobogatov.decoder;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.vlaskorobogatov.libstorage.Rack;
+import com.vlaskorobogatov.libstorage.Storage;
 
 import java.io.*;
-import java.lang.reflect.Type;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-public class JSONDecoder<T> implements Decoder<T> {
-    @Override
-    public List<T> decode(String fileName) {
-        Gson gson = new Gson();
-        Type listType = new TypeToken<List<T>>() {
-        }.getType();
-        try {
-            Reader reader = new FileReader(fileName);
-            return gson.fromJson(reader, listType);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
+public class JSONDecoder implements Decoder {
+    String fileName;
+    Parser parser;
+
+    public JSONDecoder(Parser parser, String fileName) {
+        this.fileName = fileName;
+        this.parser = parser;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     @Override
-    public String encode(List<T> list) {
-        Gson gson = new Gson();
-        return gson.toJson(list);
+    public Object decode() {
+        try {
+            String jsonString = new String(Files.readAllBytes(Path.of(fileName)));
+            return parser.fromJSON(jsonString, Storage.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public String encode(Object list) {
+        return parser.toJSON(list);
     }
 
     public static void main(String[] args) {
-        JSONDecoder<Rack> decoder = new JSONDecoder<>();
-        List<Rack> racks = decoder.decode("src/main/resources/test.json");
+        JSONDecoder decoder = new JSONDecoder(new GsonParser(), "src/main/resources/booksonly.json");
+        Storage storage = (Storage) decoder.decode();
 
-        System.out.println(racks.getClass());
-        System.out.println(racks);
-        if(!racks.isEmpty()) {
-            System.out.println(racks.get(0).toString());
-        }
-
-        System.out.println(decoder.encode(racks));
+        storage.getBooks().entrySet()
+                .stream()
+                .filter(integerBookEntry -> integerBookEntry.getValue().getRackId() == 12)
+                .forEach(System.out::println);
     }
 }

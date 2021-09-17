@@ -45,13 +45,6 @@ public class HelloServlet extends HttpServlet {
     }
 
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.getWriter().write("\nMethod service entry");
-        super.service(req, resp);
-        resp.getWriter().write("\nMethod service exit");
-    }
-
-    @Override
     public void destroy() {
         log("Method destroy");
     }
