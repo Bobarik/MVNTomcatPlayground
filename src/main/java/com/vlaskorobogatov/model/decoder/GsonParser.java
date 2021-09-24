@@ -1,4 +1,5 @@
-package com.vlaskorobogatov.decoder;
+package com.vlaskorobogatov.model.decoder;
+
 import com.google.gson.Gson;
 
 public class GsonParser implements Parser {

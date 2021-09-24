@@ -1,4 +1,6 @@
-package com.vlaskorobogatov.libstorage;
+package com.vlaskorobogatov.model.libstorage;
+
+import com.vlaskorobogatov.controller.exceptions.IncorrectParameterException;
 
 public class Book {
     private String name;
@@ -7,13 +9,16 @@ public class Book {
     private int rackId;
     private int shelf;
 
-    public void setRackId(int rackId) {
+    public void setRackId(int rackId) throws IncorrectParameterException {
+        if (rackId < 1) {
+            throw new IncorrectParameterException("Rack ID must be a positive number.");
+        }
         this.rackId = rackId;
     }
 
-    public void setShelfNumber(int shelf) throws NumberFormatException {
-        if(shelf > 3 || shelf < 1) {
-            throw new NumberFormatException("Shelf number must be in range of [1;3]");
+    public void setShelf(int shelf) throws IncorrectParameterException {
+        if (shelf > 3 || shelf < 1) {
+            throw new IncorrectParameterException("Shelf number must be in range of [1;3]");
         }
         this.shelf = shelf;
     }
@@ -30,15 +35,18 @@ public class Book {
         this.description = description;
     }
 
-    public Book(String name, String author, String description, int rackId, int shelf) throws NumberFormatException {
+    public Book(String name, String author, String description, int rackId, int shelf) throws IncorrectParameterException {
         this.name = name;
         this.author = author;
         this.description = description;
         this.rackId = rackId;
-        if(shelf > 3 || shelf < 1) {
-            throw new NumberFormatException("Shelf number must be in range of [1;3]");
+        if (shelf > 3 || shelf < 1) {
+            throw new IncorrectParameterException("Shelf number must be in range of [1;3]");
         }
         this.shelf = shelf;
+    }
+
+    public Book() {
     }
 
     public String getName() {
