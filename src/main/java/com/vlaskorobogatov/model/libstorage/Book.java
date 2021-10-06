@@ -3,7 +3,7 @@ package com.vlaskorobogatov.model.libstorage;
 import com.vlaskorobogatov.controller.exceptions.IncorrectParameterException;
 
 public class Book {
-    private String name;
+    private String title;
     private String author;
     private String description;
     private int rackId;
@@ -23,8 +23,8 @@ public class Book {
         this.shelf = shelf;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public void setAuthor(String author) {
@@ -35,8 +35,8 @@ public class Book {
         this.description = description;
     }
 
-    public Book(String name, String author, String description, int rackId, int shelf) throws IncorrectParameterException {
-        this.name = name;
+    public Book(String title, String author, String description, int rackId, int shelf) throws IncorrectParameterException {
+        this.title = title;
         this.author = author;
         this.description = description;
         this.rackId = rackId;
@@ -49,8 +49,8 @@ public class Book {
     public Book() {
     }
 
-    public String getName() {
-        return name;
+    public String getTitle() {
+        return title;
     }
 
     public String getAuthor() {
@@ -71,7 +71,7 @@ public class Book {
 
     @Override
     public String toString() {
-        return "\nName: " + getName()
+        return "\nTitle: " + getTitle()
                 + "\nAuthor: " + getAuthor()
                 + "\nDescription: " + getDescription()
                 + "\nRackId: " + getRackId()
