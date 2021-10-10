@@ -4,9 +4,7 @@ import com.vlaskorobogatov.controller.exceptions.*;
 import com.vlaskorobogatov.model.decoder.Decoder;
 import com.vlaskorobogatov.model.decoder.JSONDecoder;
 import com.vlaskorobogatov.model.decoder.JacksonParser;
-import com.vlaskorobogatov.model.libstorage.Book;
-import com.vlaskorobogatov.model.libstorage.LibraryService;
-import com.vlaskorobogatov.model.libstorage.Storage;
+import com.vlaskorobogatov.model.libstorage.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +28,8 @@ public class LibraryServlet extends HttpServlet {
         System.out.println("Initializing servlet");
         path = getServletContext().getRealPath("/") + "WEB-INF/booksonly.json";
         decoder = new JSONDecoder(new JacksonParser(), path);
-        service = new LibraryService((Storage) decoder.decode());
+        service = new LibraryServicePostgre();
+        //service = new LibraryServiceInMemory((Storage) decoder.decode());
     }
 
     @Override
@@ -50,9 +50,12 @@ public class LibraryServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String uri = req.getRequestURI();
-            int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
-            service.deleteBook(bookId);
-            resp.setStatus(204);
+            if (uri.matches("/library-servlet/books/\\d+")) {
+                int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
+                service.deleteBook(bookId);
+                resp.setStatus(204);
+            } else
+                throw new InvalidUriException("Can't delete the whole library. Please specify which book you wish to delete.");
         } catch (BookNotFoundException e) {
             handleException(new JsonResponse(404, e), resp);
         }
@@ -63,17 +66,21 @@ public class LibraryServlet extends HttpServlet {
 
         String uri = req.getRequestURI();
         if (uri.matches("/library-servlet/books/\\d+")) {
-            getBook(uri, resp);
+            try {
+                getBook(uri, resp);
+            } catch (SQLException e) {
+                handleException(new JsonResponse(500, e), resp);
+            }
         } else {
             String rackId = req.getParameter("rackId");
             String shelfNumber = req.getParameter("shelf");
-            String bookName = req.getParameter("name");
+            String bookTitle = req.getParameter("title");
 
             try {
                 Integer intRackId = (rackId != null ? Integer.parseInt(rackId) : null);
                 Integer intShelfNumber = (shelfNumber != null ? Integer.parseInt(shelfNumber) : null);
 
-                Map<Integer, Book> books = service.getBooks(intRackId, intShelfNumber, bookName);
+                Map<Integer, Book> books = service.getBooks(intRackId, intShelfNumber, bookTitle);
 
                 if (books.isEmpty()) {
                     resp.setStatus(204);
@@ -94,7 +101,7 @@ public class LibraryServlet extends HttpServlet {
             int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
 
             Map<String, String> params = new HashMap<>();
-            params.compute("name", (k, v) -> req.getParameter("name"));
+            params.compute("title", (k, v) -> req.getParameter("title"));
             params.compute("author", (k, v) -> req.getParameter("author"));
             params.compute("description", (k, v) -> req.getParameter("description"));
             params.compute("rackId", (k, v) -> req.getParameter("rackId"));
@@ -109,23 +116,26 @@ public class LibraryServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
+            Integer bookId = null;
             String uri = req.getRequestURI();
-            int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
+            if (uri.matches("/library-servlet/books/\\d+")) {
+                bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
+            }
 
-            if (service.getBookById(bookId) != null) {
+            if (bookId != null && service.getBookById(bookId) != null) {
                 throw new BookAlreadyExistsException("Book with this ID already exists. If you want to update info on this book use PATCH.");
             } else {
-                String name = req.getParameter("name");
+                String title = req.getParameter("title");
                 String author = req.getParameter("author");
                 String description = req.getParameter("description");
                 String rackId = req.getParameter("rackId");
                 String shelf = req.getParameter("shelf");
 
-                if (name == null || author == null || description == null || rackId == null || shelf == null) {
+                if (title == null || author == null || description == null || rackId == null || shelf == null) {
                     throw new IncorrectParameterException("One of the arguments is missing, can't create a book.");
                 } else {
-                    Book book = new Book(name, author, description, Integer.parseInt(rackId), Integer.parseInt(shelf));
-                    service.putBook(book, bookId);
+                    Book book = new Book(title, author, description, Integer.parseInt(rackId), Integer.parseInt(shelf));
+                    service.postBook(bookId, book);
                     resp.setStatus(201);
                 }
             }
@@ -140,7 +150,7 @@ public class LibraryServlet extends HttpServlet {
     public void destroy() {
         try {
             FileWriter writer = new FileWriter(path);
-            writer.write(decoder.encode(service.getStorage()));
+            //writer.write(decoder.encode(service.getStorage()));
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -154,11 +164,11 @@ public class LibraryServlet extends HttpServlet {
         resp.getWriter().write(decoder.encode(e));
     }
 
-    private void getBook(String uri, HttpServletResponse resp) throws IOException {
+    private void getBook(String uri, HttpServletResponse resp) throws IOException, SQLException {
         int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
         Book book = service.getBookById(bookId);
         if (book == null) {
-            handleException(new JsonResponse(404, new BookNotFoundException("Book with this ID doesn't exist")), resp);
+            handleException(new JsonResponse(404, new BookNotFoundException("Book with this ID doesn't exist.")), resp);
         } else {
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
