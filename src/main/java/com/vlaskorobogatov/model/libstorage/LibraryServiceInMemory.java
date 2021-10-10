@@ -26,8 +26,8 @@ public class LibraryServiceInMemory implements LibraryService {
     }
 
     @Override
-    public void postBook(Integer bookId, Book book) {
-        storage.getBooks().put(Objects.requireNonNullElseGet(bookId, book::hashCode), book);
+    public void postBook(Book book) {
+        storage.getBooks().put(book.hashCode(), book);
     }
 
     @Override

@@ -8,7 +8,7 @@ import java.util.Map;
 public interface LibraryService {
     Book getBookById(int bookId);
 
-    void postBook(Integer bookId, Book book);
+    void postBook(Book book);
 
     void deleteBook(int bookId) throws BookNotFoundException;
 

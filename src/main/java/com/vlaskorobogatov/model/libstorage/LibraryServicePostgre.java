@@ -43,18 +43,13 @@ public class LibraryServicePostgre implements LibraryService {
     }
 
     @Override
-    public void postBook(Integer bookId, Book book) {
+    public void postBook(Book book) {
         try {
             String query;
             PreparedStatement statement;
-            if (bookId == null) {
-                query = "INSERT INTO book (title, rack_id, shelf, description, author) " + "VALUES(?, ?, ?, ?, ?)";
-                statement = dao.getStatement(query);
-            } else {
-                query = "INSERT INTO book (title, rack_id, shelf, description, author, id) " + "VALUES(?, ?, ?, ?, ?, ?)";
-                statement = dao.getStatement(query);
-                statement.setInt(6, bookId);
-            }
+            query = "INSERT INTO book (title, rack_id, shelf, description, author) " + "VALUES(?, ?, ?, ?, ?)";
+            statement = dao.getStatement(query);
+
 
             System.out.println(statement);
             statement.setString(1, book.getTitle());
@@ -71,7 +66,6 @@ public class LibraryServicePostgre implements LibraryService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -131,7 +125,6 @@ public class LibraryServicePostgre implements LibraryService {
         } catch (NumberFormatException e) {
             throw new IncorrectParameterException("Incorrect parameter: shelf, rackId should be integers.");
         }
-
     }
 
     @Override

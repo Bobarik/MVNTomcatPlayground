@@ -119,26 +119,23 @@ public class LibraryServlet extends HttpServlet {
             Integer bookId = null;
             String uri = req.getRequestURI();
             if (uri.matches("/library-servlet/books/\\d+")) {
-                bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
+                throw new InvalidUriException("Users are not allowed to specify id of the book. Please use correct URL.");
             }
 
-            if (bookId != null && service.getBookById(bookId) != null) {
-                throw new BookAlreadyExistsException("Book with this ID already exists. If you want to update info on this book use PATCH.");
+            String title = req.getParameter("title");
+            String author = req.getParameter("author");
+            String description = req.getParameter("description");
+            String rackId = req.getParameter("rackId");
+            String shelf = req.getParameter("shelf");
+
+            if (title == null || author == null || description == null || rackId == null || shelf == null) {
+                throw new IncorrectParameterException("One of the arguments is missing, can't create a book.");
             } else {
-                String title = req.getParameter("title");
-                String author = req.getParameter("author");
-                String description = req.getParameter("description");
-                String rackId = req.getParameter("rackId");
-                String shelf = req.getParameter("shelf");
-
-                if (title == null || author == null || description == null || rackId == null || shelf == null) {
-                    throw new IncorrectParameterException("One of the arguments is missing, can't create a book.");
-                } else {
-                    Book book = new Book(title, author, description, Integer.parseInt(rackId), Integer.parseInt(shelf));
-                    service.postBook(bookId, book);
-                    resp.setStatus(201);
-                }
+                Book book = new Book(title, author, description, Integer.parseInt(rackId), Integer.parseInt(shelf));
+                service.postBook(book);
+                resp.setStatus(201);
             }
+
         } catch (IncorrectParameterException | NumberFormatException e) {
             handleException(new JsonResponse(422, e), resp);
         } catch (BookAlreadyExistsException e) {
