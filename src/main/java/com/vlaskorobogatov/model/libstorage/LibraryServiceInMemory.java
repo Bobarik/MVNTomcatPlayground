@@ -4,7 +4,6 @@ import com.vlaskorobogatov.controller.exceptions.BookNotFoundException;
 import com.vlaskorobogatov.controller.exceptions.IncorrectParameterException;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 

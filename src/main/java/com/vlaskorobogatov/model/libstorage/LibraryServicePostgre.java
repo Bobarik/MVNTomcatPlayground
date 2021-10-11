@@ -1,9 +1,12 @@
 package com.vlaskorobogatov.model.libstorage;
 
+import com.vlaskorobogatov.controller.exceptions.LibrarySQLException;
+import com.vlaskorobogatov.controller.exceptions.LibraryServletException;
 import com.vlaskorobogatov.model.connection.LibraryDao;
 import com.vlaskorobogatov.controller.exceptions.BookNotFoundException;
 import com.vlaskorobogatov.controller.exceptions.IncorrectParameterException;
 
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,12 +17,12 @@ public class LibraryServicePostgre implements LibraryService {
 
     LibraryDao dao;
 
-    public LibraryServicePostgre() {
+    public LibraryServicePostgre() throws IOException {
         dao = new LibraryDao();
     }
 
     @Override
-    public Book getBookById(int bookId) {
+    public Book getBookById(int bookId) throws LibraryServletException {
         try {
             PreparedStatement statement = dao.getStatement("SELECT * FROM book WHERE id = ?");
             statement.setInt(1, bookId);
@@ -37,51 +40,43 @@ public class LibraryServicePostgre implements LibraryService {
             book.setShelf(result.getInt("shelf"));
             return book;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new LibrarySQLException(e.getMessage());
         }
-        return null;
     }
 
     @Override
-    public void postBook(Book book) {
+    public void postBook(Book book) throws LibraryServletException {
         try {
             String query;
             PreparedStatement statement;
             query = "INSERT INTO book (title, rack_id, shelf, description, author) " + "VALUES(?, ?, ?, ?, ?)";
             statement = dao.getStatement(query);
 
-
-            System.out.println(statement);
             statement.setString(1, book.getTitle());
-            System.out.println(statement);
             statement.setInt(2, book.getRackId());
-            System.out.println(statement);
             statement.setInt(3, book.getShelfNumber());
-            System.out.println(statement);
             statement.setString(4, book.getDescription());
-            System.out.println(statement);
             statement.setString(5, book.getAuthor());
-            System.out.println(statement);
             dao.doUpdate(statement);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new LibrarySQLException(e.getMessage());
         }
     }
 
     @Override
-    public void deleteBook(int bookId) throws BookNotFoundException {
+    public void deleteBook(int bookId) throws LibraryServletException {
         try {
             PreparedStatement statement = dao.getStatement("DELETE FROM book WHERE id = ?");
             statement.setInt(1, bookId);
             if (dao.doUpdate(statement) == 0)
                 throw new BookNotFoundException("Book with this ID doesn't exist");
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new LibrarySQLException(e.getMessage());
         }
     }
 
     @Override
-    public void patchBook(int id, Map<String, String> properties) throws IncorrectParameterException {
+    public void patchBook(int id, Map<String, String> properties) throws LibraryServletException {
         try {
             Book book = getBookById(id);
             String query = "UPDATE book SET title = ?, author = ?, description = ?, shelf = ?, rack_id = ? WHERE id = ?";
@@ -121,14 +116,14 @@ public class LibraryServicePostgre implements LibraryService {
 
             dao.doUpdate(statement);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new LibrarySQLException(e.getMessage());
         } catch (NumberFormatException e) {
             throw new IncorrectParameterException("Incorrect parameter: shelf, rackId should be integers.");
         }
     }
 
     @Override
-    public Map<Integer, Book> getBooks(Integer rackId, Integer shelfNumber, String bookTitle) {
+    public Map<Integer, Book> getBooks(Integer rackId, Integer shelfNumber, String bookTitle) throws LibraryServletException {
         try {
             String queryString = "SELECT * FROM book WHERE TRUE";
             PreparedStatement statement;
@@ -147,7 +142,6 @@ public class LibraryServicePostgre implements LibraryService {
                 statement = dao.getStatement(queryString);
             }
 
-            System.out.println(statement);
             ResultSet result = dao.getResult(statement);
 
             Map<Integer, Book> books = new HashMap<>();
@@ -162,9 +156,7 @@ public class LibraryServicePostgre implements LibraryService {
             }
             return books;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new LibrarySQLException(e.getMessage());
         }
-
-        return new HashMap<>();
     }
 }
