@@ -1,7 +1,6 @@
 package com.vlaskorobogatov.model.libstorage;
 
 import com.vlaskorobogatov.controller.exceptions.LibrarySQLException;
-import com.vlaskorobogatov.controller.exceptions.LibraryServletException;
 import com.vlaskorobogatov.model.connection.LibraryDao;
 import com.vlaskorobogatov.controller.exceptions.BookNotFoundException;
 import com.vlaskorobogatov.controller.exceptions.IncorrectParameterException;
@@ -22,7 +21,7 @@ public class LibraryServicePostgre implements LibraryService {
     }
 
     @Override
-    public Book getBookById(int bookId) throws LibraryServletException {
+    public Book getBookById(int bookId) {
         try {
             PreparedStatement statement = dao.getStatement("SELECT * FROM book WHERE id = ?");
             statement.setInt(1, bookId);
@@ -45,7 +44,7 @@ public class LibraryServicePostgre implements LibraryService {
     }
 
     @Override
-    public void postBook(Book book) throws LibraryServletException {
+    public void postBook(Book book) {
         try {
             String query;
             PreparedStatement statement;
@@ -64,7 +63,7 @@ public class LibraryServicePostgre implements LibraryService {
     }
 
     @Override
-    public void deleteBook(int bookId) throws LibraryServletException {
+    public void deleteBook(int bookId) {
         try {
             PreparedStatement statement = dao.getStatement("DELETE FROM book WHERE id = ?");
             statement.setInt(1, bookId);
@@ -76,7 +75,7 @@ public class LibraryServicePostgre implements LibraryService {
     }
 
     @Override
-    public void patchBook(int id, Map<String, String> properties) throws LibraryServletException {
+    public void patchBook(int id, Map<String, String> properties) {
         try {
             Book book = getBookById(id);
             String query = "UPDATE book SET title = ?, author = ?, description = ?, shelf = ?, rack_id = ? WHERE id = ?";
@@ -123,7 +122,7 @@ public class LibraryServicePostgre implements LibraryService {
     }
 
     @Override
-    public Map<Integer, Book> getBooks(Integer rackId, Integer shelfNumber, String bookTitle) throws LibraryServletException {
+    public Map<Integer, Book> getBooks(Integer rackId, Integer shelfNumber, String bookTitle) {
         try {
             String queryString = "SELECT * FROM book WHERE TRUE";
             PreparedStatement statement;

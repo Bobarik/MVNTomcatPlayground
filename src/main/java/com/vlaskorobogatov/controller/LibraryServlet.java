@@ -52,7 +52,7 @@ public class LibraryServlet extends HttpServlet {
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException, LibraryServletException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String uri = req.getRequestURI();
             if (uri.matches("/library-servlet/books/\\d+")) {
@@ -67,7 +67,7 @@ public class LibraryServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, LibraryServletException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         String uri = req.getRequestURI();
         if (uri.matches("/library-servlet/books/\\d+")) {
@@ -96,7 +96,7 @@ public class LibraryServlet extends HttpServlet {
         }
     }
 
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException, LibraryServletException {
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String uri = req.getRequestURI();
             int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
@@ -115,7 +115,7 @@ public class LibraryServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException, LibraryServletException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String uri = req.getRequestURI();
             if (uri.matches("/library-servlet/books/\\d+")) {
@@ -161,7 +161,7 @@ public class LibraryServlet extends HttpServlet {
         resp.getWriter().write(decoder.encode(e));
     }
 
-    private void getBook(String uri, HttpServletResponse resp) throws IOException, LibraryServletException {
+    private void getBook(String uri, HttpServletResponse resp) throws IOException {
         int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
         Book book = service.getBookById(bookId);
         if (book == null) {
@@ -173,7 +173,7 @@ public class LibraryServlet extends HttpServlet {
         }
     }
 
-    private void checkUri(String uri) throws InvalidUriException {
+    private void checkUri(String uri) {
         if (!uri.matches("/library-servlet/books(/\\d+)?"))
             throw new InvalidUriException("Invalid URI, can't process.");
     }
