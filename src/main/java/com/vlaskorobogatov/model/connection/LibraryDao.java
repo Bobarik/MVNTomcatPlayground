@@ -14,6 +14,8 @@ public class LibraryDao {
         InputStream input = classLoader.getResourceAsStream("sql.properties");
         properties = new Properties();
         properties.load(input);
+        assert input != null;
+        input.close();
     }
 
     public ResultSet getResult(PreparedStatement query) {
