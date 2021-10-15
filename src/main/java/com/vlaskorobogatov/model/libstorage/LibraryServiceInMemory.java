@@ -4,7 +4,6 @@ import com.vlaskorobogatov.controller.exceptions.BookNotFoundException;
 import com.vlaskorobogatov.controller.exceptions.IncorrectParameterException;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -31,7 +30,7 @@ public class LibraryServiceInMemory implements LibraryService {
     }
 
     @Override
-    public void deleteBook(int bookId) throws BookNotFoundException {
+    public void deleteBook(int bookId) {
         Book book = storage.getBooks().remove(bookId);
         if (book == null) {
             throw new BookNotFoundException("Book with this ID doesn't exist");
@@ -39,7 +38,7 @@ public class LibraryServiceInMemory implements LibraryService {
     }
 
     @Override
-    public void patchBook(int id, Map<String, String> properties) throws IncorrectParameterException {
+    public void patchBook(int id, Map<String, String> properties) {
         try {
             Book book = storage.getBooks().get(id);
             if (properties.get("title") != null) {

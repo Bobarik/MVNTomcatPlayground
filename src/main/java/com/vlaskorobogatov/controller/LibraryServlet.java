@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,11 +23,15 @@ public class LibraryServlet extends HttpServlet {
     String path;
 
     @Override
-    public void init() {
+    public void init() throws LibraryServletException {
         System.out.println("Initializing servlet");
         path = getServletContext().getRealPath("/") + "WEB-INF/booksonly.json";
         decoder = new JSONDecoder(new JacksonParser(), path);
-        service = new LibraryServicePostgre();
+        try {
+            service = new LibraryServicePostgre();
+        } catch (IOException e) {
+            throw new LibraryServletException(e.getMessage());
+        }
         //service = new LibraryServiceInMemory((Storage) decoder.decode());
     }
 
@@ -43,6 +46,8 @@ public class LibraryServlet extends HttpServlet {
             }
         } catch (InvalidUriException e) {
             handleException(new JsonResponse(400, e), resp);
+        } catch (LibrarySQLException e) {
+            handleException(new JsonResponse(500, e), resp);
         }
     }
 
@@ -66,11 +71,7 @@ public class LibraryServlet extends HttpServlet {
 
         String uri = req.getRequestURI();
         if (uri.matches("/library-servlet/books/\\d+")) {
-            try {
-                getBook(uri, resp);
-            } catch (SQLException e) {
-                handleException(new JsonResponse(500, e), resp);
-            }
+            getBook(uri, resp);
         } else {
             String rackId = req.getParameter("rackId");
             String shelfNumber = req.getParameter("shelf");
@@ -116,7 +117,6 @@ public class LibraryServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            Integer bookId = null;
             String uri = req.getRequestURI();
             if (uri.matches("/library-servlet/books/\\d+")) {
                 throw new InvalidUriException("Users are not allowed to specify id of the book. Please use correct URL.");
@@ -161,7 +161,7 @@ public class LibraryServlet extends HttpServlet {
         resp.getWriter().write(decoder.encode(e));
     }
 
-    private void getBook(String uri, HttpServletResponse resp) throws IOException, SQLException {
+    private void getBook(String uri, HttpServletResponse resp) throws IOException {
         int bookId = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1));
         Book book = service.getBookById(bookId);
         if (book == null) {
@@ -173,7 +173,7 @@ public class LibraryServlet extends HttpServlet {
         }
     }
 
-    private void checkUri(String uri) throws InvalidUriException {
+    private void checkUri(String uri) {
         if (!uri.matches("/library-servlet/books(/\\d+)?"))
             throw new InvalidUriException("Invalid URI, can't process.");
     }

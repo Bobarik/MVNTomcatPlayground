@@ -2,14 +2,29 @@ package com.vlaskorobogatov.model.connection;
 
 import org.postgresql.Driver;
 
+import java.io.*;
 import java.sql.*;
+import java.util.Properties;
 
 public class LibraryDao {
+    Properties properties;
+
+    public LibraryDao() throws IOException {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        InputStream input = classLoader.getResourceAsStream("sql.properties");
+        properties = new Properties();
+        properties.load(input);
+        assert input != null;
+        input.close();
+    }
+
     public ResultSet getResult(PreparedStatement query) {
         try {
             DriverManager.registerDriver(new Driver());
             Connection connection = DriverManager.getConnection(
-                    "jdbc:postgresql://127.0.0.1:5432/library", "postgres", "12345");
+                    properties.getProperty("url"),
+                    properties.getProperty("username"),
+                    properties.getProperty("password"));
             if (connection != null) {
                 return query.executeQuery();
             } else {
